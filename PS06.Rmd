@@ -1,6 +1,6 @@
 ---
 title: "STAT/MATH 495: Problem Set 06"
-author: "WRITE YOUR NAME HERE"
+author: "Harrison Marick"
 date: "2017-10-17"
 output:
   html_document:
@@ -32,8 +32,7 @@ library(knitr)
 
 Please indicate who you collaborated with on this assignment: 
 
-
-
+I ride solo. 
 
 
 # Setup
@@ -96,7 +95,24 @@ n_sample <- 10000
 # Computation
 
 ```{r}
+n_sample=100
+pred1<-rep(0, n_sample) #vector for 1st model
+pred2<-rep(0, n_sample) #vector for 2nd model
+for (i in 1:n_sample){
+  samp<-generate_sample(f, n, sigma) #create sample
+  m1<-smooth.spline(samp$x, samp$y, df=2) #fit model1
+  m2<-smooth.spline(samp$x, samp$y, df=99) #fit model2
+  pred1[i]<-predict(m1, 0.95)$y #store predicted
+  pred2[i]<-predict(m2, 0.95)$y 
+}
 
+
+mse1=mean((pred1-f(0.95))^2)
+mse2=mean((pred2-f(0.95))^2)
+var1=var(pred1)
+var2=var(pred2)
+bias1=mean(pred1)-f(0.95)
+bias2=mean(pred2)-f(0.95)
 ```
 
 
@@ -115,7 +131,15 @@ output tables comparing:
 
 where `sum = bias_squared + var + irreducible`. You can created cleanly formatted tables like the one above by piping a data frame into `knitr::kable(digits=4)`.
 
-
+```{r}
+mse=c(mse1, mse2)
+var=c(var1, var2)
+bias_squared=c(bias1^2, bias2^2)
+irreducible=c(sigma^2, sigma^2)
+sum=bias_squared+var+irreducible
+dat=data.frame(df=c(2, 99), MSE=mse, Var=var, bias_squared=bias_squared, irreducible=irreducible, sum=sum)
+knitr::kable(dat, digits=4)
+```
 
 
 # Analysis
@@ -131,6 +155,8 @@ $x$ in this example, and not just for $$\mbox{MSE}\left[\widehat{f}(x_0)\right]
 
 **Answers**:
 
-1.
-1.
-1.
+1. The easiest sanity check would be to look at the table I created above. The bias for the first model should be much higher than the second model, and the variance should be much smaller for the first than the second. This appears to be the case. The second sanity check I can think of would be to plot the histogram of the predicted values for each model. In the plots, if we see tremendous variation in the fitted value (really flat histogram) for $x=0.95$ when $df=99$ and very little variation in the fitted value for $x=0.95$, then we are likely on the right track.
+
+2. For each sample in the for-loop, predict values for all $x$ and calculate the MSE of each sample, which will be stored in a vector. The mean of this vector is our MSE for all values of $x$.
+
+3. The bias for the model with $df=2$ is -0.11, which is rather significant given the expected value is just 0.9025. Having said that, with a variance of just 0.00065, this model is consistent, and it's predictions will not change much as datasets change. Overall, with an MSE of just 0.013 compared to 0.019 for the model with $df=99$, I feel more comfortable that this model will perform better out of sample. With a lot of variation in the predicted values, the model where $df=99$ is less reliable. Having said that, I would likely use a different df parameter if given the chance. 
