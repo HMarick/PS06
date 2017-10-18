@@ -106,9 +106,9 @@ for (i in 1:n_sample){
   pred2[i]<-predict(m2, 0.95)$y 
 }
 
-
-mse1=mean((pred1-f(0.95))^2)
-mse2=mean((pred2-f(0.95))^2)
+y = f(0.95) + rnorm(10000, 0, sigma)
+mse1=mean((pred1-y)^2)
+mse2=mean((pred2-y)^2)
 var1=var(pred1)
 var2=var(pred2)
 bias1=mean(pred1)-f(0.95)
